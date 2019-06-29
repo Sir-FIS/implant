@@ -2,11 +2,9 @@ import urllib.request
 import urllib.parse
 import time
 import socket
-import bs4
 import os
 import sys
 from bs4 import BeautifulSoup, Comment
-
 
 class poisonberry:
 
@@ -18,7 +16,32 @@ class poisonberry:
         self.run={}
         self.port={}
 
+    def art(self):
+        print("""\                            
+                        __________      .__                   ___.                               
+                        \______   \____ |__| __________   ____\_ |__   __________________ ___.__.
+                         |     ___/  _ \|  |/  ___/  _ \ /    \| __ \_/ __ \_  __ \_  __ <   |  |
+                         |    |  (  <_> )  |\___ (  <_> )   |  \ \_\ \  ___/|  | \/|  | \/\___  |
+                         |____|   \____/|__/____  >____/|___|  /___  /\___  >__|   |__|   / ____|
+                                                \/           \/    \/     \/              \/     
+                                
+
+                                               ._ o o
+                                               \_`-)|_
+                                            ,""       \ 
+                                          ,"  ## |   ಠ ಠ. 
+                                        ," ##   ,-\__    `.
+                                      ,"       /     `--._;)
+                                    ,"     ## /
+                                  ,"   ##    /
+                                  
+
+
+                            """)
+        time.sleep(5)
+
     def start(self):
+        self.art()
         while True:
             while self.beacon == True:
                 self.GET()
