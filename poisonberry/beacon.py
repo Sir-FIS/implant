@@ -115,7 +115,7 @@ class poisonberry:
         else:
             if self.tryPort() == True:
 
-                cmd = '/usr/bin/ssh -i berry_key -fN -R 7888:localhost:'+str(self.port) + " " + self.home+"@"+self.server# TODO replace with ssh tunnel
+                cmd = '/usr/bin/ssh -i /etc/berry_key -fN -R 7888:localhost:'+str(self.port) + " " + self.home+"@"+self.server# TODO replace with ssh tunnel
                 print(cmd)
                 os.system(cmd)
                 log(DEBUG,"running")
